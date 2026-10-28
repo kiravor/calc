@@ -1,0 +1,17 @@
+*
+!Makefile
+!include/
+!include/**
+!src/
+!src/**
+!sparta/
+!sparta/Makefile
+!sparta/include/
+!sparta/include/**
+!sparta/src/
+!sparta/src/**
+!sparta/vendor/
+!sparta/vendor/**
+!sparta/deploy/
+!sparta/deploy/Dockerfile
+!sparta/deploy/Dockerfile.dockerignore

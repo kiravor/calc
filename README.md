@@ -1,5 +1,9 @@
 # gost-c
 
+Перенос пользовательского стека Sparta (клиент, relay-узел, агент и C API для
+iOS) находится в [sparta/](sparta/README.md). Найденные проблемы и исправления:
+[sparta/AUDIT.md](sparta/AUDIT.md).
+
 Реализация на **C17** выбранных функций [GOST](https://github.com/go-gost/gost):
 HTTP-прокси, SOCKS5, перенаправление TCP/UDP и TCP-цепочки через HTTP/SOCKS5.
 Исполняемый файл не зависит от Go и сторонних библиотек: нужны POSIX-сокеты

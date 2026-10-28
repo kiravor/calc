@@ -35,14 +35,17 @@ static void *worker(void *arg) {
 int run_server(void) {
     struct sigaction action = {.sa_handler = stop_signal};
     sigemptyset(&action.sa_mask);
-    sigaction(SIGINT, &action, NULL);
-    sigaction(SIGTERM, &action, NULL);
-    action.sa_handler = SIG_IGN;
-    sigaction(SIGPIPE, &action, NULL);
+    if (!config.embedded) {
+        sigaction(SIGINT, &action, NULL);
+        sigaction(SIGTERM, &action, NULL);
+        action.sa_handler = SIG_IGN;
+        sigaction(SIGPIPE, &action, NULL);
+    }
     pthread_t udp_threads[MAX_SERVICES];
     bool udp_started[MAX_SERVICES] = {0};
     struct pollfd p[MAX_SERVICES];
     int result = 0;
+    bool announced = false;
     /* Bind all sockets before accepting clients; fail the whole startup on errors. */
     for (size_t i = 0; i < config.service_count; i++) {
         struct service *service = &config.services[i];
@@ -66,6 +69,8 @@ int run_server(void) {
         if (!socket_address(service->fd, false, &bound))
             fprintf(stderr, "Listening %s on [%s]:%u\n", protocol_name(service->endpoint.protocol), bound.host, bound.port);
     }
+    if (config.ready) config.ready(0);
+    announced = true;
     while (!stopping) {
         int n = poll(p, config.service_count, 250);
         if (n < 0) { if (errno == EINTR) continue; result = 1; break; }
@@ -94,6 +99,7 @@ int run_server(void) {
         }
     }
 done:
+    if (!announced && config.ready) config.ready(-1);
     stopping = 1;
     for (size_t i = 0; i < config.service_count; i++) if (udp_started[i]) pthread_join(udp_threads[i], NULL);
     for (size_t i = 0; i < config.service_count; i++) if (config.services[i].fd >= 0) close(config.services[i].fd);
@@ -101,5 +107,6 @@ done:
     for (struct client *client = clients; client; client = client->next) shutdown(client->fd, SHUT_RDWR);
     while (active) pthread_cond_wait(&drained, &lock);
     pthread_mutex_unlock(&lock);
+    if (config.transport_drain) config.transport_drain();
     return result;
 }

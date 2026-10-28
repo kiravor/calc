@@ -17,6 +17,10 @@ int64_t now_ms(void) {
 }
 
 int set_nonblocking(int fd) {
+#ifdef SO_NOSIGPIPE
+    int yes = 1;
+    if (setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &yes, sizeof(yes))) return -1;
+#endif
     int flags = fcntl(fd, F_GETFL, 0);
     if (flags < 0 || fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0 ||
         fcntl(fd, F_SETFD, FD_CLOEXEC) < 0) return -1;
@@ -58,7 +62,7 @@ int send_all(int fd, const void *buf, size_t len, int timeout) {
     int64_t deadline = now_ms() + timeout;
     while (len) {
         if (wait_fd(fd, POLLOUT, deadline)) return -1;
-        ssize_t n = send(fd, p, len, 0);
+        ssize_t n = send(fd, p, len, MSG_NOSIGNAL);
         if (n < 0 && (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK)) continue;
         if (n <= 0) return -1;
         p += n;
@@ -217,7 +221,7 @@ int relay(int client, int remote, struct body *body) {
         for (int i = 0; i < 2; i++) {
             if (p[i].revents & (POLLERR | POLLNVAL)) return -1;
             if (d[i].end > d[i].start && (p[1 - i].revents & (POLLOUT | POLLHUP))) {
-                ssize_t sent = send(d[i].to, d[i].buf + d[i].start, d[i].end - d[i].start, 0);
+                ssize_t sent = send(d[i].to, d[i].buf + d[i].start, d[i].end - d[i].start, MSG_NOSIGNAL);
                 if (sent > 0) { d[i].start += (size_t)sent; last = now_ms(); }
                 else if (sent < 0 && errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR) return -1;
             }

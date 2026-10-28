@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <signal.h>
+#include <stdatomic.h>
 #include <sys/socket.h>
 
 #define MAX_SERVICES 32
@@ -31,6 +32,13 @@ struct config {
     size_t service_count, hop_count;
     int timeout_ms, connect_timeout_ms;
     unsigned max_clients;
+    /* Optional embedded transport; absent hooks retain the standalone proxy. */
+    int (*dial_override)(const struct address *addr);
+    void (*udp_override)(int control, const struct address *requested);
+    void (*client_override)(int fd);
+    void (*transport_drain)(void);
+    void (*ready)(int status);
+    bool embedded;
 };
 
 /* HTTP upload framing. No bytes after the first request body reach the origin. */
@@ -42,7 +50,10 @@ struct body {
     char line[8192];
 };
 
-extern volatile sig_atomic_t stopping;
+#ifndef MSG_NOSIGNAL
+#define MSG_NOSIGNAL 0
+#endif
+extern _Atomic sig_atomic_t stopping;
 extern struct config config;
 
 int parse_address(const char *text, struct address *addr, bool listen);

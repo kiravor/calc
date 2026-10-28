@@ -5,9 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-volatile sig_atomic_t stopping;
-struct config config = {.timeout_ms = 60000, .connect_timeout_ms = 10000, .max_clients = 256};
-
 static void usage(FILE *out) {
     fputs("gost-c 0.1.0 — HTTP/SOCKS5 and TCP/UDP proxy (C17, POSIX)\n"
           "Usage: gost-c -L URL [-L URL ...] [-F URL ...] [options]\n"

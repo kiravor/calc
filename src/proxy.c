@@ -153,6 +153,7 @@ static int http_connect(int fd, const struct endpoint *ep, const struct address 
 }
 
 int open_tunnel(const struct address *addr) {
+    if (config.dial_override) return config.dial_override(addr);
     int fd = dial_socket(config.hop_count ? &config.hops[0].addr : addr,
                          SOCK_STREAM, config.connect_timeout_ms);
     if (fd < 0) return -1;
@@ -204,6 +205,7 @@ void handle_socks5(int fd, const struct endpoint *ep) {
     struct address target;
     if (socks_read_address(fd, buf[3], &target)) { socks_reply(fd, 8, -1); return; }
     if (cmd == 3) {
+        if (config.udp_override) { config.udp_override(fd, &target); return; }
         if (config.hop_count) { socks_reply(fd, 7, -1); return; }
         handle_socks_udp(fd, &target);
         return;
@@ -222,6 +224,7 @@ void handle_socks5(int fd, const struct endpoint *ep) {
 }
 
 void handle_client(int fd, const struct endpoint *ep) {
+    if (config.client_override) { config.client_override(fd); return; }
     enum protocol protocol = ep->protocol;
     if (protocol == PROTO_TCP) {
         int remote = open_tunnel(&ep->target);

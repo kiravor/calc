@@ -1,0 +1,6 @@
+module SpartaC {
+    header "sparta.h"
+    export *
+    link framework "Security"
+    link framework "CoreFoundation"
+}

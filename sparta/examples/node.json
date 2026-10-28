@@ -1,0 +1,16 @@
+{
+  "listen": "127.0.0.1:8080",
+  "ws_path": "/replace-with-your-path",
+  "state_dir": "./state",
+  "hub": "https://hub.example.com/replace-with-agent-base",
+  "node_id": "replace-with-node-id",
+  "interval_seconds": 30,
+  "plugins_enabled": false,
+  "plugin_listen": "127.0.0.1:8007",
+  "node": {
+    "host": "node.example.com",
+    "port": 8443,
+    "path": "/replace-with-your-path",
+    "fingerprint": "safari"
+  }
+}

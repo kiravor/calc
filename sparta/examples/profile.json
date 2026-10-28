@@ -1,0 +1,9 @@
+{
+  "v": 1,
+  "name": "Sparta node",
+  "host": "node.example.com",
+  "port": 8443,
+  "path": "/replace-with-your-path",
+  "user": "replace-with-user-id",
+  "fingerprint": "native"
+}
